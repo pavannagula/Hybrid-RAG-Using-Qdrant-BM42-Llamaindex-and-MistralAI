@@ -58,23 +58,59 @@ class EmbedModel(TransformComponent):
             node.embedding = self.embedding_model.get_text_embedding(node.text)
         return nodes
 
-# Create the ingestion pipeline
-pipeline = IngestionPipeline(
-    transformations=[
-        CustomTransformation(),
-        SentenceSplitter(chunk_size=1024, chunk_overlap=20),
-        EmbedModel(),
-    ]
-)
+# # Create the ingestion pipeline
+# pipeline = IngestionPipeline(
+#     transformations=[
+#         CustomTransformation(),
+#         SentenceSplitter(chunk_size=1024, chunk_overlap=20),
+#         EmbedModel(),
+#     ]
+# )
 
+# if __name__ == '__main__':
+#     # Load data from directory
+    
+#         reader = SimpleDirectoryReader(input_dir=r"C:\Users\pavan\Desktop\Generative AI\RAG-Using-Hybrid-Search-and-Re-Ranker\data\RAG_PDF")
+#         documents = reader.load_data()
+#         print(f"Loaded {len(documents)} documents")
+        
+#         # Run the ingestion pipeline
+#         nodes = pipeline.run(show_progress= True, documents=documents)
+#         print(f"Created {len(nodes)} nodes")
+    
+def Sentence_Splitter_docs_into_nodes(all_documents):
+    try:
+        splitter = SentenceSplitter(
+            chunk_size=1500,
+            chunk_overlap=200
+        )
+
+        nodes = splitter.get_nodes_from_documents(all_documents)
+
+        return nodes
+
+    except Exception as e:
+        print(f"Error splitting documents into nodes: {e}")
+        return []
+    
 if __name__ == '__main__':
     # Load data from directory
-    
-        reader = SimpleDirectoryReader(input_dir=r"C:\Users\pavan\Desktop\Generative AI\RAG-Using-Hybrid-Search-and-Re-Ranker\data")
-        documents = reader.load_data()
+
+        #reader = SimpleDirectoryReader(input_dir=r"C:\Users\pavan\Desktop\Generative AI\RAG-Using-Hybrid-Search-and-Re-Ranker\data")
+        documents = SimpleDirectoryReader(input_dir=r"C:\Users\pavan\Desktop\Generative AI\RAG-Using-Hybrid-Search-and-Re-Ranker\data").load_data(show_progress = True)
         print(f"Loaded {len(documents)} documents")
-        
+        if documents:
+            documents = CustomTransformation(documents)
+
+            # Split documents into nodes
+            nodes = Sentence_Splitter_docs_into_nodes(documents)
+
+            # Initialize embedding model
+            embeddings = EmbedModel(nodes)
+        else:
+            print("No documents to process.")
+
         # Run the ingestion pipeline
-        nodes = pipeline.run(documents=documents)
-        print(f"Created {len(nodes)} nodes")
-    
+        #nodes_parsed = pipeline.run(documents=documents)
+        print(f"Created {len(embeddings)} nodes")
+        
