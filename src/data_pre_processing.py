@@ -4,7 +4,7 @@ from llama_index.core.schema import TransformComponent
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core import SimpleDirectoryReader
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 class CustomTransformation(TransformComponent):
     """
@@ -17,23 +17,23 @@ class CustomTransformation(TransformComponent):
             node.text = re.sub(r'[^\w\s]', '', node.text)  # Removes punctuation
         return nodes
 
-class EmbedModel(TransformComponent):
-    """
-    A transformation component that applies an embedding model to the nodes.
-    """
-    embedding_model: object = Field(default=None, exclude=True)
+# class EmbedModel(TransformComponent):
+#     """
+#     A transformation component that applies an embedding model to the nodes.
+#     """
+#     embedding_model: object = Field(default=None, exclude=True)
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.embedding_model = HuggingFaceEmbedding(
-            model_name="BAAI/bge-small-en-v1.5",
-            embed_batch_size=100
-        )
+#     def __init__(self, **data):
+#         super().__init__(**data)
+#         self.embedding_model = HuggingFaceEmbedding(
+#             model_name="BAAI/bge-small-en-v1.5",
+#             embed_batch_size=100
+#         )
 
-    def __call__(self, nodes: List[object]) -> List[object]:
-        for node in nodes:
-            node.embedding = self.embedding_model.get_text_embedding(node.text)
-        return nodes
+#     def __call__(self, nodes: List[object]) -> List[object]:
+#         for node in nodes:
+#             node.embedding = self.embedding_model.get_text_embedding(node.text)
+#         return nodes
 
 def Sentence_Splitter_docs_into_nodes(all_documents):
     """
@@ -68,15 +68,15 @@ if __name__ == '__main__':
             nodes = Sentence_Splitter_docs_into_nodes(documents)
 
             # Initialize embedding model
-            embed_model = EmbedModel()
+            #embed_model = EmbedModel()
 
             # Apply embedding model
-            nodes = embed_model(nodes)
+            #nodes = embed_model(nodes)
 
             print(f"Created {len(nodes)} nodes")
 
             # Check the embedding for the first node
-            print(nodes[0].embedding)
+            #print(nodes[0].embedding)
 
         else:
             print("No documents to process.")

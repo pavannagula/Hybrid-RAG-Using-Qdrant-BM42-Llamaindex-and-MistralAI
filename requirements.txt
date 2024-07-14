@@ -7,3 +7,4 @@ llama-index
 qdrant_client
 llama-index-embeddings-huggingface
 llama_index.embeddings.langchain
+fastembed
