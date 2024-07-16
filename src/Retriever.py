@@ -5,6 +5,7 @@ from fastembed import SparseTextEmbedding, TextEmbedding
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import SparseVector
 from typing import List, Union
+from rerank import reranking
 
 # Load environment variables
 load_dotenv()
@@ -104,5 +105,7 @@ if __name__ == '__main__':
     metadata_filter = search.metadata_filter(file_names)
     results = search.query_hybrid_search(query, metadata_filter)
     logger.info(f"Found {len(results.points)} results for query: {query}")
-    for result in results:
-        logger.info(f"Result: {result}")
+   
+    # Rerank the documents using a reranking model
+    reranked_documents = reranking.rerank_documents(query, results, k=3)
+    print(reranked_documents)
