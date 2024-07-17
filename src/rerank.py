@@ -1,29 +1,18 @@
 from sentence_transformers import CrossEncoder
-from typing import List, Tuple
-from qdrant_client.http.models import QueryResponse
 
 class reranking():
     def __init__(self) -> None:
-        pass
+        # Load the CrossEncoder model
+        self.model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
-    def rerank_documents(self, query: str, results: QueryResponse, k: int = 3) -> List[str]:
-        # Extract the text of the documents from the results object
-        documents = [result.payload['text'] for result in results.points]
+    def rerank_documents(self, query, documents):
+        # Compute the similarity scores between the query and each document
+        scores = self.model.predict([(query, doc) for doc in documents])
 
-        # Load a cross-encoder model
-        model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        # Sort the documents based on their similarity scores
+        ranked_documents = sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
 
-        # Create a list of query-document pairs
-        pairs = [[query, doc] for doc in documents]
+        # Select the top 3 documents
+        top_documents = [doc for doc, score in ranked_documents[:2]]
 
-        # Compute the scores for each pair
-        scores = model.predict(pairs)
-
-        # Combine the scores with the document text
-        scored_documents = [(doc, score) for doc, score in zip(documents, scores)]
-
-        # Sort the documents by score in descending order
-        sorted_documents = sorted(scored_documents, key=lambda x: x[1], reverse=True)
-
-        # Return the top-scoring documents
-        return [doc for doc, score in sorted_documents[:k]]
+        return top_documents

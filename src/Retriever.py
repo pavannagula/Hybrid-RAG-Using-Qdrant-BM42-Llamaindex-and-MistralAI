@@ -96,7 +96,11 @@ class Hybrid_search():
             query_filter=metadata_filter,
             query=models.FusionQuery(fusion=models.Fusion.RRF),
         )
-        return results
+        
+        # Extract the document number, score, and text from the payload of each scored point
+        documents = [point.payload['text'] for point in results.points]
+
+        return documents
 
 if __name__ == '__main__':
     search = Hybrid_search()
@@ -104,8 +108,9 @@ if __name__ == '__main__':
     file_names = "Adaptive-RAG.pdf"
     metadata_filter = search.metadata_filter(file_names)
     results = search.query_hybrid_search(query, metadata_filter)
-    logger.info(f"Found {len(results.points)} results for query: {query}")
-   
-    # Rerank the documents using a reranking model
-    reranked_documents = reranking.rerank_documents(query, results, k=3)
+    logger.info(f"Found {len(results)} results for query: {query}")
+    #print(results)
+    
+    # # Rerank the documents using a reranking model
+    reranked_documents = reranking.rerank_documents(query, results)
     print(reranked_documents)

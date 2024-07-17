@@ -1,99 +1,93 @@
+from llama_index.core import QueryEngine
+from llama_index.core.retrievers import BaseRetriever
+from llama_index.core.postprocessor import BaseNodePostprocessor
+from llama_index.core.response_synthesizers import TreeSummarize
+from llama_index.core.response_synthesizers import TreeSummarize
 from llama_index.core.query_pipeline import QueryPipeline
-from llama_index.vector_stores.qdrant import QdrantVectorStore
-from llama_index.core.retrievers import VectorIndexRetriever
-from llama_index.core.postprocessor import SentenceTransformerRerank
-from llama_index.llms import OpenAI
-from llama_index.core.prompts import PromptTemplate
-from llama_index.core.response_synthesizers import get_response_synthesizer
-from typing import Dict, Any
+from llama_index.core import PromptTemplate
+from rerank import reranking
+from Retriever import Hybrid_search
+from llama_index.llms.groq import Groq
+from dotenv import load_dotenv
+import os
 
-def create_query_pipeline(
-    qdrant_client,
-    collection_name: str,
-    embedding_dimension: int,
-    top_k: int = 10,
-    rerank_top_n: int = 5,
-    metadata_filter: Dict[str, Any] = None
-) -> QueryPipeline:
-    # Set up Qdrant vector store
-    vector_store = QdrantVectorStore(
-        client=qdrant_client,
-        collection_name=collection_name,
-        dimension=embedding_dimension
-    )
 
-    # Set up retriever with metadata filter
-    retriever = VectorIndexRetriever(
-        vector_store=vector_store,
-        similarity_top_k=top_k,
-        filters=metadata_filter
-    )
+class CustomRetriever(BaseRetriever):
+    def __init__(self, search, metadata_filter):
+        self.search = search
+        self.metadata_filter = metadata_filter
 
-    # Set up reranker
-    reranker = SentenceTransformerRerank(
-        model="cross-encoder/ms-marco-MiniLM-L-6-v2",
-        top_n=rerank_top_n
-    )
+    def _retrieve(self, query, **kwargs):
+        results = self.search.query_hybrid_search(query, self.metadata_filter)
+        return results
 
-    # Set up LLM
-    llm = OpenAI(model="gpt-3.5-turbo")
+class CustomReranker(BaseNodePostprocessor):
+    def __init__(self, reranker):
+        self.reranker = reranker
 
-    # Set up prompt template
-    prompt_template = PromptTemplate(
-        "Given the context information: {context_str}, "
-        "please answer the following question: {query_str}\n"
-        "If the information is not present in the context, please say 'I don't have enough information to answer this question.'"
-    )
+    def postprocess_nodes(self, nodes, query, **kwargs):
+        reranked_documents = self.reranker.rerank_documents(query, nodes)
+        return reranked_documents
 
-    # Set up summarizer
-    summarizer = get_response_synthesizer(
-        response_mode="compact",
-        use_async=True
-    )
+class CustomQueryEngine(QueryEngine):
+    def __init__(self, llm, prompt_tmpl, search, reranker, filename):
+        self.llm = llm
+        self.prompt_tmpl = prompt_tmpl
+        self.search = search
+        self.reranker = reranker
+        self.filename = filename
 
-    # Create query pipeline
-    pipeline = QueryPipeline(verbose=True)
+    def query(self, query_str):
+        # Create retriever
+        metadata_filter = self.search.metadata_filter(self.filename)
+        retriever = CustomRetriever(self.search, metadata_filter)
 
-    # Add modules to the pipeline
-    pipeline.add_modules({
-        "retriever": retriever,
-        "reranker": reranker,
-        "prompt": prompt_template,
-        "llm": llm,
-        "summarizer": summarizer
-    })
+        # Retrieve initial results
+        initial_results = retriever.retrieve(query_str)
 
-    # Define links between modules
-    pipeline.add_link("retriever", "reranker")
-    pipeline.add_link("reranker", "prompt")
-    pipeline.add_link("prompt", "llm")
-    pipeline.add_link("llm", "summarizer")
+        # Rerank results
+        reranker = CustomReranker(self.reranker)
+        reranked_results = reranker.postprocess_nodes(initial_results, query_str)
 
-    return pipeline
+        # Prepare context
+        context = "".join(reranked_results)
 
-# Usage example
-def query_pipeline(pipeline: QueryPipeline, query: str) -> str:
-    response = pipeline.run(query_str=query)
-    return str(response)
+        # Generate prompt
+        prompt = self.prompt_tmpl.format(context_str=context, query_str=query_str)
 
-# Example of how to use the functions
-if __name__ == "__main__":
-    import qdrant_client
+        # Synthesize response
+        summarizer = TreeSummarize(llm=self.llm)
+        response = summarizer.synthesize(prompt, query_str)
 
-    # Initialize Qdrant client
-    qdrant_client = qdrant_client.QdrantClient("localhost", port=6333)
+        return response
 
-    # Set up the pipeline
-    pipeline = create_query_pipeline(
-        qdrant_client=qdrant_client,
-        collection_name="my_collection",
-        embedding_dimension=768,  # Adjust based on your embedding model
-        top_k=10,
-        rerank_top_n=5,
-        metadata_filter={"category": "science"}  # Example metadata filter
-    )
+prompt_str = """You are an AI assistant specializing in explaining complex topics related to AI-powered RAG systems. Your task is to provide a clear, concise, and informative explanation based on the following context and query.
 
-    # Query the pipeline
-    query = "What are the latest advancements in quantum computing?"
-    result = query_pipeline(pipeline, query)
-    print(result)
+Context:
+{context_str}
+
+Query: {query_str}
+
+Please follow these guidelines in your response:
+1. Start with a brief overview of the concept mentioned in the query.
+2. Provide at least one concrete example or use case to illustrate the concept.
+3. If there are any limitations or challenges associated with this concept, briefly mention them.
+4. Conclude with a sentence about the potential future impact or applications of this concept.
+
+Your explanation should be informative yet accessible, suitable for someone with a basic understanding of AI and RAG. If the query asks for information not present in the context, please state that you don't have enough information to provide a complete answer, and only respond based on the given context.
+
+Response:
+"""
+
+# Usage
+query_engine = CustomQueryEngine(
+    llm= Groq(model="mixtral-8x7b-32768", api_key=os.getenv('groq_api_key')),
+    prompt_tmpl = PromptTemplate(prompt_str),
+    search=Hybrid_search,
+    reranker=reranking,
+    filename="Adaptive-RAG.pdf"
+)
+
+if __name__ == '__main__':
+    query="Explain adaptive retrieval and its advantages."
+    response = query_engine.query(query)
