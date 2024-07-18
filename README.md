@@ -1,5 +1,5 @@
 # RAG-Using-Hybrid-Search-and-Re-Ranking
-This project provides an overview and implementation steps for constructing a Retrieval-Augmented Generation (RAG) application using Qdrant hybrid search and re-ranking retriever. 
+This project provides an overview of a Retrieval-Augmented Generation (RAG) chat application using Qdrant hybrid search, Llamaindex, MistralAI, and re-ranking model. 
 
 Hybrid RAG model combines the strengths of dense vector search and sparse vector search to retrieve relevant documents for a given query. This model uses Qdrant's BM42 approach for sparse vector search, which allows for exact keyword matching and handling of domain-specific terminology. The model also uses dense vector search with the sentence-transformer all-miniLM model to capture semantic relationships and contextual understanding.
 The retrieved documents are then re-ranked using a CrossEncoder-based Re-Ranking model to improve the accuracy of the retrieved documents. Finally, the top two documents are used as context to generate a response using MistralAI's 8x7B large language model. The response is then summarized using a response synthesizer to ensure that it is concise and informative.
