@@ -28,7 +28,7 @@ Overall, the Hybrid RAG model is a powerful solution that addresses the limitati
     - MistralAI 8x7B Model
 6. **Streamlit**
 
-For even more detailed explanation check out this article: 
+For even more detailed explanation check out this article: https://medium.com/@npavankumar36/hybrid-rag-using-qdrant-bm42-llamaindex-and-mistralai-5d0d51093e8f
 
 Results
 ![image](https://github.com/user-attachments/assets/8ec32278-5941-45b4-90c4-745c6a458807)
