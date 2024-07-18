@@ -15,8 +15,7 @@ class prompt_template_generation():
     def __init__(self) -> None:
         self.search = Hybrid_search()
         self.reranker = reranking()
-        self.filename = "Adaptive-RAG.pdf"
-        self.prompt_str = """You are an AI assistant specializing in explaining complex topics related to AI-powered RAG systems. Your task is to provide a clear, concise, and informative explanation based on the following context and query.
+        self.prompt_str = """You are an AI assistant specializing in explaining complex topics related to Retrieval-Augmented Generation(RAG). Your task is to provide a clear, concise, and informative explanation based on the following context and query.
 
         Context:
         {context_str}
@@ -29,14 +28,14 @@ class prompt_template_generation():
         3. If there are any limitations or challenges associated with this concept, briefly mention them.
         4. Conclude with a sentence about the potential future impact or applications of this concept.
 
-        Your explanation should be informative yet accessible, suitable for someone with a basic understanding of AI and RAG. If the query asks for information not present in the context, please state that you don't have enough information to provide a complete answer, and only respond based on the given context.
+        Your explanation should be informative yet accessible, suitable for someone with a basic understanding of RAG. If the query asks for information not present in the context, please state that you don't have enough information to provide a complete answer, and only respond based on the given context.
 
         Response:
         """
         self.prompt_tmpl = PromptTemplate(self.prompt_str)
 
-    def prompt_generation(self, query: str):
-        metadata_filter = self.search.metadata_filter(self.filename)
+    def prompt_generation(self, query: str, filename: str):
+        metadata_filter = self.search.metadata_filter(filename)
         results = self.search.query_hybrid_search(query, metadata_filter)
         
         reranked_documents = self.reranker.rerank_documents(query, results)
@@ -66,12 +65,12 @@ def create_query_engine(prompt: str):
         response_synthesizer=response_synthesizer,
     )
     response = query_engine.query(prompt)
-    return response
+    return response.response
 
 if __name__ == '__main__':
-    query_str = "Explain adaptive retrieval and its advantages."
-    #filename = "Adaptive-RAG.pdf"
+    query_str = "What are the evaluation results of SELF-RAG?"
+    filename = "SELF-RAG.pdf"
     prompt_gen = prompt_template_generation()
-    prompt = prompt_gen.prompt_generation(query = query_str)
+    prompt = prompt_gen.prompt_generation(query = query_str, filename = filename)
     response = create_query_engine(prompt)
     print(response)
