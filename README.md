@@ -1,6 +1,8 @@
 # RAG-Using-Hybrid-Search-and-Re-Ranking
 This project provides an overview and implementation steps for constructing a Retrieval-Augmented Generation (RAG) application using a hybrid search and re-ranking retriever. The architecture leverages both semantic and keyword search techniques to enhance query processing and retrieval accuracy. Additionally, the re-ranking step ensures better retrieval by extracting the relevant documents, leading to more accurate and contextually relevant responses.
 
+![Hybrid RAG Architecture](https://github.com/user-attachments/assets/139be431-0019-4246-8eb5-9225191e86fb)
+
 ## **Architecture Overview**
 
 1. **Document Ingestion**
