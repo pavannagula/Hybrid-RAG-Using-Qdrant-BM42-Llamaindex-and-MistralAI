@@ -12,7 +12,7 @@ class reranking():
         # Sort the documents based on their similarity scores
         ranked_documents = sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
 
-        # Select the top 3 documents
+        # Select the top 2 documents
         top_documents = [doc for doc, score in ranked_documents[:2]]
 
         return top_documents

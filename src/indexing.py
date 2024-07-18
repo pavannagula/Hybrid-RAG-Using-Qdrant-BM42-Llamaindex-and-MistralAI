@@ -23,7 +23,7 @@ class QdrantIndexing:
         """
         Initialize the QdrantIndexing object.
         """
-        self.data_path = r"C:\Users\pavan\Desktop\Generative AI\RAG-Using-Hybrid-Search-and-Re-Ranker\data\nodes.json"
+        self.data_path = r"\data\nodes.json"
         self.embedding_model = TextEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
         self.sparse_embedding_model = SparseTextEmbedding(model_name="Qdrant/bm42-all-minilm-l6-v2-attentions")
         self.qdrant_client = QdrantClient(

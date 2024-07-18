@@ -49,7 +49,7 @@ def save_nodes(nodes, output_file):
 if __name__ == '__main__':
     try:
         # Load data from directory
-        documents = SimpleDirectoryReader(input_dir=r"C:\Users\pavan\Desktop\Generative AI\RAG-Using-Hybrid-Search-and-Re-Ranker\data").load_data()
+        documents = SimpleDirectoryReader(input_dir=r"\data").load_data()
         print(f"Loaded {len(documents)} documents")
 
         if documents:
@@ -63,7 +63,7 @@ if __name__ == '__main__':
             print(f"Created {len(nodes)} nodes")
 
             # Save nodes to a single JSON file
-            output_file = r"C:\Users\pavan\Desktop\Generative AI\RAG-Using-Hybrid-Search-and-Re-Ranker\data\nodes.json"
+            output_file = r"\data\nodes.json"
             save_nodes(nodes, output_file)
 
         else:

@@ -45,13 +45,13 @@ class Hybrid_search():
             models.Filter: A Qdrant filter object based on the file names provided.
         """
         if isinstance(file_names, str):
-            # Single file name
+            
             file_name_condition = models.FieldCondition(
                 key="file_name",
                 match=models.MatchValue(value=file_names)
             )
         else:
-            # List of file names
+            
             file_name_condition = models.FieldCondition(
                 key="file_name",
                 match=models.MatchAny(any=file_names)
@@ -94,10 +94,10 @@ class Hybrid_search():
                 ),
             ],
             query_filter=metadata_filter,
-            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            query=models.FusionQuery(fusion=models.Fusion.RRF), #Reciprocal Rerank Fusion
         )
         
-        # Extract the document number, score, and text from the payload of each scored point
+        # Extract the text from the payload of each scored point
         documents = [point.payload['text'] for point in results.points]
 
         return documents
