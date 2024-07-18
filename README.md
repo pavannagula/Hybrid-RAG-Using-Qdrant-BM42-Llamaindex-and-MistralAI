@@ -1,26 +1,38 @@
 # RAG-Using-Hybrid-Search-and-Re-Ranking
-This project provides an overview and implementation steps for constructing a Retrieval-Augmented Generation (RAG) application using a hybrid search and re-ranking retriever. The architecture leverages both semantic and keyword search techniques to enhance query processing and retrieval accuracy. Additionally, the re-ranking step ensures better retrieval by extracting the relevant documents, leading to more accurate and contextually relevant responses.
+This project provides an overview and implementation steps for constructing a Retrieval-Augmented Generation (RAG) application using Qdrant hybrid search and re-ranking retriever. 
+
+Hybrid RAG model combines the strengths of dense vector search and sparse vector search to retrieve relevant documents for a given query. This model uses Qdrant's BM42 approach for sparse vector search, which allows for exact keyword matching and handling of domain-specific terminology. The model also uses dense vector search with the sentence-transformer all-miniLM model to capture semantic relationships and contextual understanding.
+The retrieved documents are then re-ranked using a CrossEncoder-based Re-Ranking model to improve the accuracy of the retrieved documents. Finally, the top two documents are used as context to generate a response using MistralAI's 8x7B large language model. The response is then summarized using a response synthesizer to ensure that it is concise and informative.
+Overall, the Hybrid RAG model is a powerful solution that addresses the limitations of traditional Semantic Search RAG systems and provides accurate and efficient information retrieval for a wide range of applications.
 
 ![Hybrid RAG Architecture](https://github.com/user-attachments/assets/139be431-0019-4246-8eb5-9225191e86fb)
 
+
 ## **Architecture Overview**
 
-1. **Document Ingestion**
-    - Document Loader
-    - Text Chunking
-    - Embedding Generation
+1. **Document Pre-Processing**
+    - Custom Transformation
+    - Sentence Splitter
 2. **Indexing**
-    - Vector Store (for semantic search)
-    - Inverted Index (for keyword search)
-3. **Query Processing**
-    - Query Understanding
-    - Query Expansion (optional)
-4. **Hybrid Retrieval**
-    - Semantic Search
-    - Keyword Search (e.g., BM25)
-    - Ensemble Retriever
-5. **Re-Ranking**
-    - Re-Ranking Model
-6. **Context Formation**
-7. **LLM Integration**
-8. **Response Generation**
+    - Dense Embedding (for semantic search)
+    - Sparse Embedding (for keyword search)
+3. **Hybrid Retrieval**
+    - Semantic Search (sentence-transformer)
+    - Keyword Search (BM42 approach)
+    - Reciprocal Rank Fusion
+4. **Re-Ranking**
+    - Cross Encoder Re-Ranking Model
+5. **Response Generation**
+    - Prompt Template
+    - Llamaindex CustomQueryEngine
+    - MistralAI 8x7B Model
+6. **Streamlit**
+
+For even more detailed explanation check out this article: 
+
+Results
+![image](https://github.com/user-attachments/assets/8ec32278-5941-45b4-90c4-745c6a458807)
+
+References:
+1. https://qdrant.tech/documentation/
+2. https://docs.llamaindex.ai/en/stable/
